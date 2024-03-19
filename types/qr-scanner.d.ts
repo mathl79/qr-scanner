@@ -1,9 +1,9 @@
-/// <reference types="offscreencanvas" />
+//// <reference types="offscreencanvas" />
 declare class QrScanner {
     static readonly DEFAULT_CANVAS_SIZE = 400;
     static readonly NO_QR_CODE_FOUND = "No QR code found";
-    private static _disableBarcodeDetector;
-    private static _workerMessageId;
+    private static _disableBarcodeDetector: boolean;
+    private static _workerMessageId: number;
     /** @deprecated */
     static set WORKER_PATH(workerPath: string);
     static hasCamera(): Promise<boolean>;
@@ -11,20 +11,20 @@ declare class QrScanner {
     readonly $video: HTMLVideoElement;
     readonly $canvas: HTMLCanvasElement;
     readonly $overlay?: HTMLDivElement;
-    private readonly $codeOutlineHighlight?;
-    private readonly _onDecode?;
-    private readonly _legacyOnDecode?;
-    private readonly _legacyCanvasSize;
-    private _preferredCamera;
+    private readonly $codeOutlineHighlight?: SVGSVGElement;
+    private readonly _onDecode?: (result: QrScanner.ScanResult) => void;
+    private readonly _legacyOnDecode?: (result: string) => void;
+    private readonly _legacyCanvasSize: number;
+    private _preferredCamera: QrScanner.FacingMode | QrScanner.DeviceId;
     private readonly _maxScansPerSecond;
-    private _lastScanTimestamp;
-    private _scanRegion;
-    private _codeOutlineHighlightRemovalTimeout?;
-    private _qrEnginePromise;
-    private _active;
-    private _paused;
-    private _flashOn;
-    private _destroyed;
+    private _lastScanTimestamp: number;
+    private _scanRegion: QrScanner.ScanRegion;
+    private _codeOutlineHighlightRemovalTimeout?: number;
+    private _qrEnginePromise: Promise<Worker | BarcodeDetector>;
+    private _active: boolean;
+    private _paused: boolean;
+    private _flashOn: boolean;
+    private _destroyed: boolean;
     constructor(video: HTMLVideoElement, onDecode: (result: QrScanner.ScanResult) => void, options: {
         onDecodeError?: (error: Error | string) => void;
         calculateScanRegion?: (video: HTMLVideoElement) => QrScanner.ScanRegion;
@@ -37,12 +37,12 @@ declare class QrScanner {
         returnDetailedScanResult?: true;
         domTarget?: HTMLDivElement;
     });
-    /** @deprecated */
-    constructor(video: HTMLVideoElement, onDecode: (result: string) => void, onDecodeError?: (error: Error | string) => void, calculateScanRegion?: (video: HTMLVideoElement) => QrScanner.ScanRegion, preferredCamera?: QrScanner.FacingMode | QrScanner.DeviceId);
-    /** @deprecated */
-    constructor(video: HTMLVideoElement, onDecode: (result: string) => void, onDecodeError?: (error: Error | string) => void, canvasSize?: number, preferredCamera?: QrScanner.FacingMode | QrScanner.DeviceId);
-    /** @deprecated */
-    constructor(video: HTMLVideoElement, onDecode: (result: string) => void, canvasSize?: number);
+    // /** @deprecated */
+    // constructor(video: HTMLVideoElement, onDecode: (result: string) => void, onDecodeError?: (error: Error | string) => void, calculateScanRegion?: (video: HTMLVideoElement) => QrScanner.ScanRegion, preferredCamera?: QrScanner.FacingMode | QrScanner.DeviceId);
+    // /** @deprecated */
+    // constructor(video: HTMLVideoElement, onDecode: (result: string) => void, onDecodeError?: (error: Error | string) => void, canvasSize?: number, preferredCamera?: QrScanner.FacingMode | QrScanner.DeviceId);
+    // /** @deprecated */
+    // constructor(video: HTMLVideoElement, onDecode: (result: string) => void, canvasSize?: number);
     hasFlash(): Promise<boolean>;
     isFlashOn(): boolean;
     toggleFlash(): Promise<void>;
@@ -69,24 +69,25 @@ declare class QrScanner {
     static createQrEngine(): Promise<Worker | BarcodeDetector>;
     /** @deprecated */
     static createQrEngine(workerPath: string): Promise<Worker | BarcodeDetector>;
-    private _onPlay;
-    private _onLoadedMetaData;
-    private _onVisibilityChange;
-    private _calculateScanRegion;
-    private _updateOverlay;
-    private static _convertPoints;
-    private _scanFrame;
-    private _onDecodeError;
-    private _getCameraStream;
-    private _restartVideoStream;
-    private static _stopVideoStream;
-    private _setVideoMirror;
-    private _getFacingMode;
-    private static _drawToCanvas;
-    private static _loadImage;
-    private static _awaitImageLoad;
-    private static _postWorkerMessage;
-    private static _postWorkerMessageSync;
+    private _onPlay: void;
+    private _onLoadedMetaData: void;
+    private _onVisibilityChange: void;
+    private _calculateScanRegion: QrScanner.ScanRegion;
+    private _updateOverlay: void;
+    private static _convertPoints: QrScanner.Point[];
+    private _scanFrame: void;
+    private _onDecodeError: void;
+    private _getCameraStream: Promise<{ stream: MediaStream, facingMode: QrScanner.FacingMode }>;
+    private _restartVideoStream: Promise<void>;
+    private static _stopVideoStream: void;
+    private _setVideoMirror: void;
+    private _getFacingMode: QrScanner.FacingMode | null;
+    private static _drawToCanvas: [HTMLCanvasElement, CanvasRenderingContext2D];
+    private static _loadImage: Promise<HTMLImageElement | HTMLVideoElement | HTMLCanvasElement | OffscreenCanvas | ImageBitmap
+    | SVGImageElement >;
+    private static _awaitImageLoad: Promise<void>;
+    private static _postWorkerMessage: Promise<number>;
+    private static _postWorkerMessageSync: number;
 }
 declare namespace QrScanner {
     interface ScanRegion {

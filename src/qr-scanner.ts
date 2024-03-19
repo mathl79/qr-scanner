@@ -509,7 +509,7 @@ class QrScanner {
                 const qrEngineWorker = qrEngine; // for ts to know that it's still a worker later in the event listeners
                 if (!gotExternalEngine) {
                     // Enable scanning of inverted color qr codes.
-                    QrScanner._postWorkerMessageSync(qrEngineWorker, 'inversionMode', 'both');
+                    QrScanner._postWorkerMessageSync(qrEngineWorker, 'inversionMode', [], 'both');
                 }
                 detailedScanResult = await new Promise((resolve, reject) => {
                     let timeout: number;
@@ -546,8 +546,8 @@ class QrScanner {
                     expectedResponseId = QrScanner._postWorkerMessageSync(
                         qrEngineWorker,
                         'decode',
-                        imageData,
                         [imageData.data.buffer],
+                        imageData,                        
                     );
                 });
             } else {
@@ -1056,8 +1056,8 @@ class QrScanner {
     private static _postWorkerMessageSync(
         qrEngine: Worker | BarcodeDetector,
         type: string,
-        data?: any,
-        transfer?: Transferable[],
+        transfer: Transferable[],
+        data?: any        
     ): number {
         if (!(qrEngine instanceof Worker)) return -1;
         const id = QrScanner._workerMessageId++;
