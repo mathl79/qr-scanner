@@ -83,83 +83,16 @@ class QrScanner {
             highlightCodeOutline?: boolean,
             overlay?: HTMLDivElement,
             /** just a temporary flag until we switch entirely to the new api */
-            returnDetailedScanResult?: true,
-            domTarget?: HTMLDivElement,
+            returnDetailedScanResult?: boolean,
+            domTarget?: HTMLDivElement | ShadowRoot | null,
         },
-    );
-    /** @deprecated */
-    constructor(
-        video: HTMLVideoElement,
-        onDecode: (result: string) => void,
-        onDecodeError?: (error: Error | string) => void,
-        calculateScanRegion?: (video: HTMLVideoElement) => QrScanner.ScanRegion,
-        preferredCamera?: QrScanner.FacingMode | QrScanner.DeviceId,
-    );
-    /** @deprecated */
-    constructor(
-        video: HTMLVideoElement,
-        onDecode: (result: string) => void,
-        onDecodeError?: (error: Error | string) => void,
-        canvasSize?: number,
-        preferredCamera?: QrScanner.FacingMode | QrScanner.DeviceId,
-    );
-    /** @deprecated */
-    constructor(video: HTMLVideoElement, onDecode: (result: string) => void, canvasSize?: number);
-    constructor(
-        video: HTMLVideoElement,
-        onDecode: ((result: QrScanner.ScanResult) => void) | ((result: string) => void),
-        canvasSizeOrOnDecodeErrorOrOptions?: number | ((error: Error | string) => void) | {
-            onDecodeError?: (error: Error | string) => void,
-            calculateScanRegion?: (video: HTMLVideoElement) => QrScanner.ScanRegion,
-            preferredCamera?: QrScanner.FacingMode | QrScanner.DeviceId,
-            maxScansPerSecond?: number;
-            highlightScanRegion?: boolean,
-            highlightCodeOutline?: boolean,
-            overlay?: HTMLDivElement,
-            /** just a temporary flag until we switch entirely to the new api */
-            returnDetailedScanResult?: true,
-            domTarget?: HTMLElement,
-        },
-        canvasSizeOrCalculateScanRegion?: number | ((video: HTMLVideoElement) => QrScanner.ScanRegion),
-        preferredCamera?: QrScanner.FacingMode | QrScanner.DeviceId,
     ) {
         this.$video = video;
         this.$canvas = document.createElement('canvas');
-
-        if (canvasSizeOrOnDecodeErrorOrOptions && typeof canvasSizeOrOnDecodeErrorOrOptions === 'object') {
-            // we got an options object using the new api
-            this._onDecode = onDecode as QrScanner['_onDecode'];
-        } else {
-            if (canvasSizeOrOnDecodeErrorOrOptions || canvasSizeOrCalculateScanRegion || preferredCamera) {
-                console.warn('You\'re using a deprecated version of the QrScanner constructor which will be removed in '
-                    + 'the future');
-            } else {
-                // Only video and onDecode were specified and we can't distinguish between new or old api usage. For
-                // backwards compatibility we have to assume the old api for now. The options object is marked as non-
-                // optional in the parameter list above to make clear that ScanResult instead of string is only passed
-                // if an options object was provided. However, in the future once legacy support is removed, the options
-                // object should become optional.
-                console.warn('Note that the type of the scan result passed to onDecode will change in the future. '
-                    + 'To already switch to the new api today, you can pass returnDetailedScanResult: true.');
-            }
-            this._legacyOnDecode = onDecode as QrScanner['_legacyOnDecode'];
-        }
-
-        const options = typeof canvasSizeOrOnDecodeErrorOrOptions === 'object'
-            ? canvasSizeOrOnDecodeErrorOrOptions
-            : {};
-        this._onDecodeError = options.onDecodeError || (typeof canvasSizeOrOnDecodeErrorOrOptions === 'function'
-            ? canvasSizeOrOnDecodeErrorOrOptions
-            : this._onDecodeError);
-        this._calculateScanRegion = options.calculateScanRegion || (typeof canvasSizeOrCalculateScanRegion==='function'
-            ? canvasSizeOrCalculateScanRegion
-            : this._calculateScanRegion);
-        this._preferredCamera = options.preferredCamera || preferredCamera || this._preferredCamera;
-        this._legacyCanvasSize = typeof canvasSizeOrOnDecodeErrorOrOptions === 'number'
-            ? canvasSizeOrOnDecodeErrorOrOptions
-            : typeof canvasSizeOrCalculateScanRegion === 'number'
-                ? canvasSizeOrCalculateScanRegion
-                : this._legacyCanvasSize;
+        
+        if (options.onDecodeError) this._onDecodeError = options.onDecodeError;
+        if (options.calculateScanRegion) this._calculateScanRegion = options.calculateScanRegion;
+        this._preferredCamera = options.preferredCamera || this._preferredCamera;        
         this._maxScansPerSecond = options.maxScansPerSecond || this._maxScansPerSecond;
 
         this._onPlay = this._onPlay.bind(this);
