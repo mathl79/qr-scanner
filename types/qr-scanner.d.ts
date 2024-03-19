@@ -34,7 +34,7 @@ declare class QrScanner {
         highlightCodeOutline?: boolean;
         overlay?: HTMLDivElement;
         /** just a temporary flag until we switch entirely to the new api */
-        returnDetailedScanResult?: true;
+        returnDetailedScanResult?: boolean;
         domTarget?: HTMLDivElement;
     });
     // /** @deprecated */
@@ -60,7 +60,7 @@ declare class QrScanner {
         disallowCanvasResizing?: boolean;
         alsoTryWithoutScanRegion?: boolean;
         /** just a temporary flag until we switch entirely to the new api */
-        returnDetailedScanResult?: true;
+        returnDetailedScanResult?: boolean;
     }): Promise<QrScanner.ScanResult>;
     /** @deprecated */
     static scanImage(imageOrFileOrBlobOrUrl: HTMLImageElement | HTMLVideoElement | HTMLCanvasElement | OffscreenCanvas | ImageBitmap | SVGImageElement | File | Blob | URL | String, scanRegion?: QrScanner.ScanRegion | null, qrEngine?: Worker | BarcodeDetector | Promise<Worker | BarcodeDetector> | null, canvas?: HTMLCanvasElement | null, disallowCanvasResizing?: boolean, alsoTryWithoutScanRegion?: boolean): Promise<string>;
