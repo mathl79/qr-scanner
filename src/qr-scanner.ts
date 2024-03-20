@@ -1,4 +1,4 @@
-class QrScanner {
+export class QrScanner {
     static readonly DEFAULT_CANVAS_SIZE = 400;
     static readonly NO_QR_CODE_FOUND = 'No QR code found';
     private static _disableBarcodeDetector = false;
@@ -18,7 +18,7 @@ class QrScanner {
         }
     }
 
-    static async listCameras(requestLabels = false): Promise<Array<QrScanner.Camera>> {
+    static async listCameras(requestLabels = false): Promise<Array<Camera>> {
         if (!navigator.mediaDevices) return [];
 
         const enumerateCameras = async (): Promise<Array<MediaDeviceInfo>> =>
@@ -57,13 +57,13 @@ class QrScanner {
     readonly $canvas: HTMLCanvasElement;
     readonly $overlay?: HTMLDivElement;
     private readonly $codeOutlineHighlight?: SVGSVGElement;
-    private readonly _onDecode?: (result: QrScanner.ScanResult) => void;
+    private readonly _onDecode?: (result: ScanResult) => void;
     private readonly _legacyOnDecode?: (result: string) => void;
     private readonly _legacyCanvasSize: number = QrScanner.DEFAULT_CANVAS_SIZE;
-    private _preferredCamera: QrScanner.FacingMode | QrScanner.DeviceId = 'environment';
+    private _preferredCamera: FacingMode | DeviceId = 'environment';
     private readonly _maxScansPerSecond: number = 25;
     private _lastScanTimestamp: number = -1;
-    private _scanRegion: QrScanner.ScanRegion;
+    private _scanRegion: ScanRegion;
     private _codeOutlineHighlightRemovalTimeout?: number;
     private _qrEnginePromise: Promise<Worker | BarcodeDetector>
     private _active: boolean = false;
@@ -73,11 +73,11 @@ class QrScanner {
 
     constructor(
         video: HTMLVideoElement,
-        onDecode: (result: QrScanner.ScanResult) => void,
+        onDecode: (result: ScanResult) => void,
         options: {
             onDecodeError?: (error: Error | string) => void,
-            calculateScanRegion?: (video: HTMLVideoElement) => QrScanner.ScanRegion,
-            preferredCamera?: QrScanner.FacingMode | QrScanner.DeviceId,
+            calculateScanRegion?: (video: HTMLVideoElement) => ScanRegion,
+            preferredCamera?: FacingMode | DeviceId,
             maxScansPerSecond?: number;
             highlightScanRegion?: boolean,
             highlightCodeOutline?: boolean,
@@ -89,7 +89,7 @@ class QrScanner {
     ) {
         this.$video = video;
         this.$canvas = document.createElement('canvas');
-        
+        this._onDecode = onDecode;
         if (options.onDecodeError) this._onDecodeError = options.onDecodeError;
         if (options.calculateScanRegion) this._calculateScanRegion = options.calculateScanRegion;
         this._preferredCamera = options.preferredCamera || this._preferredCamera;        
@@ -349,7 +349,7 @@ class QrScanner {
         return true;
     }
 
-    async setCamera(facingModeOrDeviceId: QrScanner.FacingMode | QrScanner.DeviceId): Promise<void> {
+    async setCamera(facingModeOrDeviceId: FacingMode | DeviceId): Promise<void> {
         if (facingModeOrDeviceId === this._preferredCamera) return;
         this._preferredCamera = facingModeOrDeviceId;
         // Restart the scanner with the new camera which will also update the video mirror and the scan region.
@@ -360,7 +360,7 @@ class QrScanner {
         imageOrFileOrBlobOrUrl: HTMLImageElement | HTMLVideoElement | HTMLCanvasElement | OffscreenCanvas | ImageBitmap
             | SVGImageElement | File | Blob | URL | String,
         options: {
-            scanRegion?: QrScanner.ScanRegion | null,
+            scanRegion?: ScanRegion | null,
             qrEngine?: Worker | BarcodeDetector | Promise<Worker | BarcodeDetector> | null,
             canvas?: HTMLCanvasElement | null,
             disallowCanvasResizing?: boolean,
@@ -368,12 +368,12 @@ class QrScanner {
             /** just a temporary flag until we switch entirely to the new api */
             returnDetailedScanResult?: true,
         },
-    ): Promise<QrScanner.ScanResult>;
+    ): Promise<ScanResult>;
     /** @deprecated */
     static async scanImage(
         imageOrFileOrBlobOrUrl: HTMLImageElement | HTMLVideoElement | HTMLCanvasElement | OffscreenCanvas | ImageBitmap
             | SVGImageElement | File | Blob | URL | String,
-        scanRegion?: QrScanner.ScanRegion | null,
+        scanRegion?: ScanRegion | null,
         qrEngine?: Worker | BarcodeDetector | Promise<Worker | BarcodeDetector> | null,
         canvas?: HTMLCanvasElement | null,
         disallowCanvasResizing?: boolean,
@@ -382,8 +382,8 @@ class QrScanner {
     static async scanImage(
         imageOrFileOrBlobOrUrl: HTMLImageElement | HTMLVideoElement | HTMLCanvasElement | OffscreenCanvas | ImageBitmap
             | SVGImageElement | File | Blob | URL | String,
-        scanRegionOrOptions?: QrScanner.ScanRegion | {
-            scanRegion?: QrScanner.ScanRegion | null,
+        scanRegionOrOptions?: ScanRegion | {
+            scanRegion?: ScanRegion | null,
             qrEngine?: Worker | BarcodeDetector | Promise<Worker | BarcodeDetector> | null,
             canvas?: HTMLCanvasElement | null,
             disallowCanvasResizing?: boolean,
@@ -395,8 +395,8 @@ class QrScanner {
         canvas?: HTMLCanvasElement | null,
         disallowCanvasResizing: boolean = false,
         alsoTryWithoutScanRegion: boolean = false,
-    ): Promise<string | QrScanner.ScanResult> {
-        let scanRegion: QrScanner.ScanRegion | null | undefined;
+    ): Promise<string | ScanResult> {
+        let scanRegion: ScanRegion | null | undefined;
         let returnDetailedScanResult = false;
         if (scanRegionOrOptions && (
             'scanRegion' in scanRegionOrOptions
@@ -436,7 +436,7 @@ class QrScanner {
                 QrScanner._loadImage(imageOrFileOrBlobOrUrl),
             ]);
             [canvas, canvasContext] = QrScanner._drawToCanvas(image, scanRegion, canvas, disallowCanvasResizing);
-            let detailedScanResult: QrScanner.ScanResult;
+            let detailedScanResult: ScanResult;
 
             if (qrEngine instanceof Worker) {
                 const qrEngineWorker = qrEngine; // for ts to know that it's still a worker later in the event listeners
@@ -485,11 +485,11 @@ class QrScanner {
                 });
             } else {
                 detailedScanResult = await Promise.race([
-                    new Promise<QrScanner.ScanResult>((resolve, reject) => window.setTimeout(
+                    new Promise<ScanResult>((resolve, reject) => window.setTimeout(
                         () => reject('Scanner error: timeout'),
                         10000,
                     )),
-                    (async (): Promise<QrScanner.ScanResult> => {
+                    (async (): Promise<ScanResult> => {
                         try {
                             const [scanResult] = await qrEngine.detect(canvas!);
                             if (!scanResult) throw QrScanner.NO_QR_CODE_FOUND;
@@ -547,7 +547,7 @@ class QrScanner {
         );
     }
 
-    setInversionMode(inversionMode: QrScanner.InversionMode): void {
+    setInversionMode(inversionMode: InversionMode): void {
         // Note that for the native BarcodeDecoder or if the worker was destroyed, this is a no-op. However, the native
         // implementations scan normal and inverted qr codes by default
         QrScanner._postWorkerMessage(this._qrEnginePromise, 'inversionMode', inversionMode);
@@ -615,7 +615,7 @@ class QrScanner {
         }
     }
 
-    private _calculateScanRegion(video: HTMLVideoElement): QrScanner.ScanRegion {
+    private _calculateScanRegion(video: HTMLVideoElement): ScanRegion {
         // Default scan region calculation. Note that this can be overwritten in the constructor.
         const smallestDimension = Math.min(video.videoWidth, video.videoHeight);
         const scanRegionSize = Math.round(2 / 3 * smallestDimension);
@@ -708,9 +708,9 @@ class QrScanner {
     }
 
     private static _convertPoints(
-        points: QrScanner.Point[],
-        scanRegion?: QrScanner.ScanRegion | null,
-    ): QrScanner.Point[] {
+        points: Point[],
+        scanRegion?: ScanRegion | null,
+    ): Point[] {
         if (!scanRegion) return points;
         const offsetX = scanRegion.x || 0;
         const offsetY = scanRegion.y || 0;
@@ -755,7 +755,7 @@ class QrScanner {
             // console.log('Scan rate:', Math.round(1000 / (Date.now() - this._lastScanTimestamp)));
             this._lastScanTimestamp = Date.now();
 
-            let result: QrScanner.ScanResult | undefined;
+            let result: ScanResult | undefined;
             try {
                 result = await QrScanner.scanImage(this.$video, {
                     scanRegion: this._scanRegion,
@@ -811,7 +811,7 @@ class QrScanner {
         console.log(error);
     }
 
-    private async _getCameraStream(): Promise<{ stream: MediaStream, facingMode: QrScanner.FacingMode }> {
+    private async _getCameraStream(): Promise<{ stream: MediaStream, facingMode: FacingMode }> {
         if (!navigator.mediaDevices) throw 'Camera not found.';
 
         const preferenceType = /^(environment|user)$/.test(this._preferredCamera)
@@ -834,7 +834,7 @@ class QrScanner {
                 // mode, even for exact facingMode constraints.
                 const facingMode = this._getFacingMode(stream)
                     || (constraints.facingMode
-                        ? this._preferredCamera as QrScanner.FacingMode // a facing mode we were able to fulfill
+                        ? this._preferredCamera as FacingMode // a facing mode we were able to fulfill
                         : (this._preferredCamera === 'environment'
                             ? 'user' // switch as _preferredCamera was environment but we are not able to fulfill it
                             : 'environment' // switch from unfulfilled user facingMode or default to environment
@@ -863,13 +863,13 @@ class QrScanner {
         }
     }
 
-    private _setVideoMirror(facingMode: QrScanner.FacingMode): void {
+    private _setVideoMirror(facingMode: FacingMode): void {
         // in user facing mode mirror the video to make it easier for the user to position the QR code
         const scaleFactor = facingMode === 'user'? -1 : 1;
         this.$video.style.transform = 'scaleX(' + scaleFactor + ')';
     }
 
-    private _getFacingMode(videoStream: MediaStream): QrScanner.FacingMode | null {
+    private _getFacingMode(videoStream: MediaStream): FacingMode | null {
         const videoTrack = videoStream.getVideoTracks()[0];
         if (!videoTrack) return null; // unknown
         // inspired by https://github.com/JodusNodus/react-qr-reader/blob/master/src/getDeviceId.js#L13
@@ -883,7 +883,7 @@ class QrScanner {
     private static _drawToCanvas(
         image: HTMLImageElement | HTMLVideoElement | HTMLCanvasElement | OffscreenCanvas | ImageBitmap
             | SVGImageElement,
-        scanRegion?: QrScanner.ScanRegion | null,
+        scanRegion?: ScanRegion | null,
         canvas?: HTMLCanvasElement | null,
         disallowCanvasResizing= false,
     ): [HTMLCanvasElement, CanvasRenderingContext2D] {
@@ -1003,7 +1003,7 @@ class QrScanner {
     }
 }
 
-declare namespace QrScanner {
+//declare namespace QrScanner {
     export interface ScanRegion {
         x?: number;
         y?: number;
@@ -1031,15 +1031,15 @@ declare namespace QrScanner {
     export interface ScanResult {
         data: string;
         // In clockwise order, starting at top left, but this might not be guaranteed in the future.
-        cornerPoints: QrScanner.Point[];
+        cornerPoints: Point[];
     }
-}
+//}
 
 // simplified from https://wicg.github.io/shape-detection-api/#barcode-detection-api
 declare class BarcodeDetector {
     constructor(options?: { formats: string[] });
     static getSupportedFormats(): Promise<string[]>;
-    detect(image: ImageBitmapSource): Promise<Array<{ rawValue: string, cornerPoints: QrScanner.Point[] }>>;
+    detect(image: ImageBitmapSource): Promise<Array<{ rawValue: string, cornerPoints: Point[] }>>;
 }
 
 // simplified from https://github.com/lukewarlow/user-agent-data-types/blob/master/index.d.ts
@@ -1059,4 +1059,4 @@ declare global {
     }
 }
 
-export default QrScanner;
+//export default QrScanner;
