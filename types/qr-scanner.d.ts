@@ -54,7 +54,7 @@ export declare class QrScanner {
         disallowCanvasResizing?: boolean;
         alsoTryWithoutScanRegion?: boolean;
         /** just a temporary flag until we switch entirely to the new api */
-        returnDetailedScanResult?: true;
+        returnDetailedScanResult?: boolean;
     }): Promise<ScanResult>;
     /** @deprecated */
     static scanImage(imageOrFileOrBlobOrUrl: HTMLImageElement | HTMLVideoElement | HTMLCanvasElement | OffscreenCanvas | ImageBitmap | SVGImageElement | File | Blob | URL | String, scanRegion?: ScanRegion | null, qrEngine?: Worker | BarcodeDetector | Promise<Worker | BarcodeDetector> | null, canvas?: HTMLCanvasElement | null, disallowCanvasResizing?: boolean, alsoTryWithoutScanRegion?: boolean): Promise<string>;

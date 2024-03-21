@@ -101,29 +101,29 @@ export class QrScanner {
         this._updateOverlay = this._updateOverlay.bind(this);
 
         // @ts-ignore
-        video.disablePictureInPicture = true;
+        this.$video.disablePictureInPicture = true;
         // Allow inline playback on iPhone instead of requiring full screen playback,
         // see https://webkit.org/blog/6784/new-video-policies-for-ios/
         // @ts-ignore
-        video.playsInline = true;
+        this.$video.playsInline = true;
         // Allow play() on iPhone without requiring a user gesture. Should not really be needed as camera stream
         // includes no audio, but just to be safe.
-        video.muted = true;
+        this.$video.muted = true;
 
         // Avoid Safari stopping the video stream on a hidden video.
         // See https://github.com/cozmo/jsQR/issues/185
         let shouldHideVideo = false;
-        if (video.hidden) {
-            video.hidden = false;
+        if (this.$video.hidden) {
+            this.$video.hidden = false;
             shouldHideVideo = true;
         }
 
         const domTarget = options.domTarget || document.body;
-        if (!domTarget.contains(video)) {
-            domTarget.appendChild(video);
+        if (!domTarget.contains(this.$video)) {
+            domTarget.appendChild(this.$video);
             shouldHideVideo = true;
         }
-        const videoContainer = video.parentElement!;
+        const videoContainer = this.$video.parentElement!;
 
         if (options.highlightScanRegion || options.highlightCodeOutline) {
             const gotExternalOverlay = !!options.overlay;
@@ -149,7 +149,7 @@ export class QrScanner {
                         easing: 'ease-in-out',
                     });
                 } catch (e) {}
-                videoContainer.insertBefore(this.$overlay, this.$video.nextSibling);
+                videoContainer.insertBefore(this.$overlay, this.$video.nextSibling);               
             }
             if (options.highlightCodeOutline) {
                 // default style; can be overwritten via css
@@ -166,21 +166,23 @@ export class QrScanner {
 
         requestAnimationFrame(() => {
             // Checking in requestAnimationFrame which should avoid a potential additional re-flow for getComputedStyle.
-            const videoStyle = window.getComputedStyle(video);
+            const videoStyle = window.getComputedStyle(this.$video);            
+            //const videoStyle = video.style;            
             if (videoStyle.display === 'none') {
-                video.style.setProperty('display', 'block', 'important');
+                this.$video.style.setProperty('display', 'block', 'important');
                 shouldHideVideo = true;
             }
+            
             if (videoStyle.visibility !== 'visible') {
-                video.style.setProperty('visibility', 'visible', 'important');
+                this.$video.style.setProperty('visibility', 'visible', 'important');
                 shouldHideVideo = true;
             }
             if (shouldHideVideo) {
                 // Hide the video in a way that doesn't cause Safari to stop the playback.
                 console.warn('QrScanner has overwritten the video hiding style to avoid Safari stopping the playback.');
-                video.style.opacity = '0';
-                video.style.width = '0';
-                video.style.height = '0';
+                this.$video.style.opacity = '0';
+                this.$video.style.width = '0';
+                this.$video.style.height = '0';
                 if (this.$overlay && this.$overlay.parentElement) {
                     this.$overlay.parentElement.removeChild(this.$overlay);
                 }
@@ -366,7 +368,7 @@ export class QrScanner {
             disallowCanvasResizing?: boolean,
             alsoTryWithoutScanRegion?: boolean,
             /** just a temporary flag until we switch entirely to the new api */
-            returnDetailedScanResult?: true,
+            returnDetailedScanResult?: boolean,
         },
     ): Promise<ScanResult>;
     /** @deprecated */
@@ -389,7 +391,7 @@ export class QrScanner {
             disallowCanvasResizing?: boolean,
             alsoTryWithoutScanRegion?: boolean,
             /** just a temporary flag until we switch entirely to the new api */
-            returnDetailedScanResult?: true,
+            returnDetailedScanResult?: boolean,
         } | null,
         qrEngine?: Worker | BarcodeDetector | Promise<Worker | BarcodeDetector> | null,
         canvas?: HTMLCanvasElement | null,
@@ -642,7 +644,7 @@ export class QrScanner {
             const elementX = video.offsetLeft;
             const elementY = video.offsetTop;
 
-            const videoStyle = window.getComputedStyle(video);
+            const videoStyle = window.getComputedStyle(this.$video);                        
             const videoObjectFit = videoStyle.objectFit;
             const videoAspectRatio = videoWidth / videoHeight;
             const elementAspectRatio = elementWidth / elementHeight;
@@ -761,7 +763,7 @@ export class QrScanner {
                     scanRegion: this._scanRegion,
                     qrEngine: this._qrEnginePromise,
                     canvas: this.$canvas,
-                });
+                });                
             } catch (error) {
                 if (!this._active) return;
                 this._onDecodeError(error as Error | string);
